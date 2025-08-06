@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickMatch - Instant Video Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(236, 72, 153, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(236, 72, 153, 0);
+            }
+        }
+        .slide-in {
+            animation: slideIn 0.5s forwards;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        /* Dockerfile section styles */
+        .dockerfile-container {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+        .dockerfile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #569cd6;
+        }
+        .copy-btn {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .copy-btn:hover {
+            background-color: #444;
+        }
+        .dockerfile-content {
+            white-space: pre;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+        .comment {
+            color: #6a9955;
+        }
+        .keyword {
+            color: #569cd6;
+        }
+        .string {
+            color: #ce9178;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Main Container -->
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-12">
+            <div class="flex items-center">
+                <i class="fas fa-heart text-pink-500 text-3xl mr-3"></i>
+                <h1 class="text-3xl font-bold text-gray-800">Quick<span class="text-pink-500">Match</span></h1>
+            </div>
+            <div id="gender-display" class="hidden">
+                <span class="bg-pink-100 text-pink-800 px-4 py-2 rounded-full font-medium">
+                    <i class="fas fa-user mr-2"></i>
+                    <span id="current-gender">Male</span>
+                </span>
+                <button id="change-gender" class="ml-2 text-gray-500 hover:text-pink-500 transition">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Gender Selection Modal -->
+        <div id="gender-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl p-8 w-full max-w-md relative slide-in">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Choose Your Gender</h2>
+                <p class="text-gray-600 mb-8 text-center">We'll match you with someone of the opposite gender</p>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button id="select-male" class="bg-blue-100 hover:bg-blue-200 text-blue-800 py-4 rounded-xl font-bold transition flex flex-col items-center">
+                        <i class="fas fa-mars text-3xl mb-2"></i>
+                        <span>Male</span>
+                    </button>
+                    <button id="select-female" class="bg-pink-100 hover:bg-pink-200 text-pink-800 py-4 rounded-xl font-bold transition flex flex-col items-center">
+                        <i class="fas fa-venus text-3xl mb-2"></i>
+                        <span>Female</span>
+                    </button>
+                </div>
+                
+                <p class="text-center mt-6 text-gray-500 text-sm">
+                    By continuing, you agree to our <a href="#" class="text-pink-500">Terms</a> and <a href="#" class="text-pink-500">Privacy Policy</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main id="main-content" class="hidden">
+            <!-- Hero Section -->
+            <section class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-800 mb-6">Instant Video Matching</h2>
+                <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                    Get connected with interesting people through random video chats. Males matched with females for fun conversations.
+                </p>
+                <button id="find-match-btn" class="bg-pink-500 text-white px-8 py-3 rounded-full font-bold text-lg shadow-lg hover:bg-pink-600 transition transform hover:scale-105 pulse-animation">
+                    <i class="fas fa-heart mr-2"></i>Find a Match
+                </button>
+            </section>
+
+            <!-- How It Works Section -->
+            <section class="mb-16">
+                <h3 class="text-2xl font-bold text-gray-800 mb-8 text-center">How It Works</h3>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-md text-center">
+                        <div class="bg-pink-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-user text-pink-500 text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-lg mb-2">1. Choose Gender</h4>
+                        <p class="text-gray-600">Select male or female to be matched with the opposite gender.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md text-center">
+                        <div class="bg-pink-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-random text-pink-500 text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-lg mb-2">2. Get Matched</h4>
+                        <p class="text-gray-600">Our system instantly matches you with a compatible partner.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md text-center">
+                        <div class="bg-pink-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-video text-pink-500 text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-lg mb-2">3. Video Chat</h4>
+                        <p class="text-gray-600">Enjoy a private video chat with your match!</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Matching Interface -->
+        <div id="matching-interface" class="hidden">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="p-6 border-b">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xl font-bold text-gray-800">Finding Your Match...</h3>
+                        <button id="cancel-search" class="text-gray-500 hover:text-pink-500">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <p class="text-gray-600">We're searching for a compatible partner for you.</p>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-center mb-6">
+                        <div class="relative">
+                            <div class="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
+                                <i class="fas fa-user text-gray-400 text-5xl"></i>
+                            </div>
+                            <div id="match-found-badge" class="absolute -bottom-2 -right-2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium hidden">
+                                <i class="fas fa-check mr-1"></i> Found
+                            </div>
+                        </div>
+                    </div>
+                    <div id="match-info" class="text-center hidden">
+                        <h4 class="text-xl font-bold text-gray-800" id="match-name">Jessica</h4>
+                        <p class="text-gray-600 mb-4" id="match-location">New York, USA</p>
+                        <div class="flex justify-center space-x-2 mb-6">
+                            <span class="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm">Travel</span>
+                            <span class="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm">Music</span>
+                            <span class="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm">Food</span>
+                        </div>
+                    </div>
+                    <div id="searching-animation" class="flex flex-col items-center">
+                        <div class="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p class="text-gray-600">Searching for matches...</p>
+                    </div>
+                    <button id="start-chat-btn" class="w-full bg-pink-500 text-white py-3 rounded-lg font-bold hover:bg-pink-600 transition hidden mt-6">
+                        <i class="fas fa-video mr-2"></i>Start Video Chat
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Chat Interface -->
+        <div id="video-chat-interface" class="hidden">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="p-4 border-b flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-gray-500"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium" id="chat-partner-name">Jessica</h4>
+                            <p class="text-xs text-gray-500">Connected</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button id="mute-btn" class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button id="video-off-btn" class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition">
+                            <i class="fas fa-video"></i>
+                        </button>
+                        <button id="new-match-btn" class="w-10 h-10 rounded-full bg-pink-500 text-white flex items-center justify-center hover:bg-pink-600 transition">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                        <button id="end-call-btn" class="w-10 h-10 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition">
+                            <i class="fas fa-phone"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <div class="video-container bg-gray-900 rounded-lg mb-4 relative">
+                        <video id="remote-video" autoplay playsinline class="w-full h-full"></video>
+                        <video id="local-video" autoplay playsinline class="absolute bottom-4 right-4 w-1/4 h-1/4 rounded-lg border-2 border-white shadow-md"></video>
+                        <div id="video-placeholder" class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-user text-gray-400 text-3xl"></i>
+                                </div>
+                                <h4 class="text-xl font-bold text-white" id="video-partner-name">Jessica</h4>
+                                <p class="text-gray-300">Connecting...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-center space-x-4 mt-4">
+                        <button id="chat-toggle-btn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+                            <i class="fas fa-comment mr-2"></i>Chat
+                        </button>
+                        <button id="report-btn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+                            <i class="fas fa-flag mr-2"></i>Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dockerfile Section -->
+        <section class="mt-16">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">Deployment with Docker</h3>
+            <p class="text-gray-600 mb-6">Here's a Dockerfile you can use to containerize this application:</p>
+            
+            <div class="dockerfile-container">
+                <div class="dockerfile-header">
+                    <span>Dockerfile</span>
+                    <button class="copy-btn" onclick="copyDockerfile()">
+                        <i class="fas fa-copy mr-1"></i> Copy
+                    </button>
+                </div>
+                <div class="dockerfile-content">
+<span class="comment"># Use the official Node.js image as base</span>
+<span class="keyword">FROM</span> node:<span class="string">18-alpine</span>
+
+<span class="comment"># Set the working directory</span>
+<span class="keyword">WORKDIR</span> <span class="string">/app</span>
+
+<span class="comment"># Copy package files first for better caching</span>
+<span class="keyword">COPY</span> package*.json ./
+
+<span class="comment"># Install dependencies</span>
+<span class="keyword">RUN</span> npm install
+
+<span class="comment"># Copy all files</span>
+<span class="keyword">COPY</span> . .
+
+<span class="comment"># Build the application</span>
+<span class="keyword">RUN</span> npm run build
+
+<span class="comment"># Use a lightweight web server to serve the static files</span>
+<span class="keyword">FROM</span> nginx:<span class="string">alpine</span>
+
+<span class="comment"># Copy the built files to Nginx</span>
+<span class="keyword">COPY</span> --from=0 /app/dist /usr/share/nginx/html
+
+<span class="comment"># Expose port 80</span>
+<span class="keyword">EXPOSE</span> <span class="string">80</span>
+
+<span class="comment"># Start Nginx</span>
+<span class="keyword">CMD</span> [<span class="string">"nginx"</span>, <span class="string">"-g"</span>, <span class="string">"daemon off;"</span>]</div>
+            </div>
+            
+            <div class="mt-4 text-gray-600">
+                <p class="mb-2">To build and run the container:</p>
+                <div class="bg-gray-800 text-gray-200 p-3 rounded-md font-mono text-sm">
+                    <p>docker build -t quickmatch .</p>
+                    <p>docker run -p 8080:80 quickmatch</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-16 pt-8 border-t border-gray-200">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <i class="fas fa-heart text-pink-500 text-2xl mr-3"></i>
+                    <span class="text-xl font-bold text-gray-800">Quick<span class="text-pink-500">Match</span></span>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-600 hover:text-pink-500 transition">About</a>
+                    <a href="#" class="text-gray-600 hover:text-pink-500 transition">Privacy</a>
+                    <a href="#" class="text-gray-600 hover:text-pink-500 transition">Terms</a>
+                    <a href="#" class="text-gray-600 hover:text-pink-500 transition">Contact</a>
+                </div>
+            </div>
+            <p class="text-center text-gray-500 mt-8 text-sm">© 2023 QuickMatch. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM Elements
+        const genderModal = document.getElementById('gender-modal');
+        const selectMale = document.getElementById('select-male');
+        const selectFemale = document.getElementById('select-female');
+        const genderDisplay = document.getElementById('gender-display');
+        const currentGender = document.getElementById('current-gender');
+        const changeGender = document.getElementById('change-gender');
+        const mainContent = document.getElementById('main-content');
+        const findMatchBtn = document.getElementById('find-match-btn');
+        const matchingInterface = document.getElementById('matching-interface');
+        const videoChatInterface = document.getElementById('video-chat-interface');
+        const searchingAnimation = document.getElementById('searching-animation');
+        const matchFoundBadge = document.getElementById('match-found-badge');
+        const matchInfo = document.getElementById('match-info');
+        const startChatBtn = document.getElementById('start-chat-btn');
+        const cancelSearch = document.getElementById('cancel-search');
+        const endCallBtn = document.getElementById('end-call-btn');
+        const newMatchBtn = document.getElementById('new-match-btn');
+        const muteBtn = document.getElementById('mute-btn');
+        const videoOffBtn = document.getElementById('video-off-btn');
+        const remoteVideo = document.getElementById('remote-video');
+        const localVideo = document.getElementById('local-video');
+        const videoPlaceholder = document.getElementById('video-placeholder');
+
+        // User data
+        let userGender = null;
+        let currentMatch = null;
+        
+        // Sample user data
+        const maleUsers = [
+            { id: 1, name: 'John', gender: 'male', location: 'London, UK', interests: ['Sports', 'Music', 'Travel'] },
+            { id: 2, name: 'Mike', gender: 'male', location: 'Paris, France', interests: ['Art', 'Food', 'Photography'] },
+            { id: 3, name: 'David', gender: 'male', location: 'Berlin, Germany', interests: ['Technology', 'Gaming', 'Movies'] }
+        ];
+        
+        const femaleUsers = [
+            { id: 4, name: 'Jessica', gender: 'female', location: 'New York, USA', interests: ['Travel', 'Music', 'Food'] },
+            { id: 5, name: 'Sarah', gender: 'female', location: 'Tokyo, Japan', interests: ['Fashion', 'Reading', 'Yoga'] },
+            { id: 6, name: 'Emma', gender: 'female', location: 'Sydney, Australia', interests: ['Dancing', 'Cooking', 'Animals'] }
+        ];
+
+        // Gender Selection
+        selectMale.addEventListener('click', () => {
+            userGender = 'male';
+            currentGender.textContent = 'Male';
+            genderModal.classList.add('hidden');
+            genderDisplay.classList.remove('hidden');
+            mainContent.classList.remove('hidden');
+        });
+
+        selectFemale.addEventListener('click', () => {
+            userGender = 'female';
+            currentGender.textContent = 'Female';
+            genderModal.classList.add('hidden');
+            genderDisplay.classList.remove('hidden');
+            mainContent.classList.remove('hidden');
+        });
+
+        // Change Gender
+        changeGender.addEventListener('click', () => {
+            userGender = userGender === 'male' ? 'female' : 'male';
+            currentGender.textContent = userGender.charAt(0).toUpperCase() + userGender.slice(1);
+            
+            // If in video chat, end current call
+            if (!videoChatInterface.classList.contains('hidden')) {
+                endCurrentCall();
+            }
+            
+            // If in matching interface, cancel search
+            if (!matchingInterface.classList.contains('hidden')) {
+                cancelSearch.click();
+            }
+        });
+
+        // Find Match
+        findMatchBtn.addEventListener('click', () => {
+            if (!userGender) {
+                genderModal.classList.remove('hidden');
+                return;
+            }
+            
+            mainContent.classList.add('hidden');
+            matchingInterface.classList.remove('hidden');
+            startSearching();
+        });
+
+        function startSearching() {
+            searchingAnimation.classList.remove('hidden');
+            matchFoundBadge.classList.add('hidden');
+            matchInfo.classList.add('hidden');
+            startChatBtn.classList.add('hidden');
+            
+            // Simulate searching for a match
+            setTimeout(() => {
+                findMatch();
+            }, 2000 + Math.random() * 3000); // Random delay between 2-5 seconds
+        }
+
+        function findMatch() {
+            searchingAnimation.classList.add('hidden');
+            matchFoundBadge.classList.remove('hidden');
+            matchInfo.classList.remove('hidden');
+            
+            // Find a match of opposite gender
+            let potentialMatches = userGender === 'male' ? femaleUsers : maleUsers;
+            currentMatch = potentialMatches[Math.floor(Math.random() * potentialMatches.length)];
+            
+            document.getElementById('match-name').textContent = currentMatch.name;
+            document.getElementById('match-location').textContent = currentMatch.location;
+            document.getElementById('chat-partner-name').textContent = currentMatch.name;
+            document.getElementById('video-partner-name').textContent = currentMatch.name;
+            
+            // Update interests
+            const interestsContainer = matchInfo.querySelector('.flex.justify-center.space-x-2');
+            interestsContainer.innerHTML = '';
+            currentMatch.interests.forEach(interest => {
+                const span = document.createElement('span');
+                span.className = 'bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm';
+                span.textContent = interest;
+                interestsContainer.appendChild(span);
+            });
+            
+            startChatBtn.classList.remove('hidden');
+        }
+
+        // Cancel Search
+        cancelSearch.addEventListener('click', () => {
+            matchingInterface.classList.add('hidden');
+            mainContent.classList.remove('hidden');
+        });
+
+        // Start Video Chat
+        startChatBtn.addEventListener('click', () => {
+            matchingInterface.classList.add('hidden');
+            videoChatInterface.classList.remove('hidden');
+            
+            // Simulate video connection
+            setTimeout(() => {
+                videoPlaceholder.classList.add('hidden');
+                
+                // In a real app, you would set up WebRTC here
+                // For demo, we'll just show a placeholder
+                remoteVideo.src = 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4';
+                localVideo.src = 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4';
+            }, 1500);
+        });
+
+        // End Call
+        function endCurrentCall() {
+            videoChatInterface.classList.add('hidden');
+            mainContent.classList.remove('hidden');
+            
+            // Reset video elements
+            remoteVideo.src = '';
+            localVideo.src = '';
+            videoPlaceholder.classList.remove('hidden');
+        }
+
+        endCallBtn.addEventListener('click', endCurrentCall);
+
+        // Find New Match
+        newMatchBtn.addEventListener('click', () => {
+            videoChatInterface.classList.add('hidden');
+            matchingInterface.classList.remove('hidden');
+            startSearching();
+            
+            // Reset video elements
+            remoteVideo.src = '';
+            localVideo.src = '';
+            videoPlaceholder.classList.remove('hidden');
+        });
+
+        // Toggle Mute
+        let isMuted = false;
+        muteBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            muteBtn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
+            muteBtn.classList.toggle('bg-gray-200');
+            muteBtn.classList.toggle('bg-pink-500');
+            muteBtn.classList.toggle('text-white');
+            
+            // In a real app, you would mute the audio track here
+        });
+
+        // Toggle Video
+        let isVideoOff = false;
+        videoOffBtn.addEventListener('click', () => {
+            isVideoOff = !isVideoOff;
+            videoOffBtn.innerHTML = isVideoOff ? '<i class="fas fa-video-slash"></i>' : '<i class="fas fa-video"></i>';
+            videoOffBtn.classList.toggle('bg-gray-200');
+            videoOffBtn.classList.toggle('bg-pink-500');
+            videoOffBtn.classList.toggle('text-white');
+            
+            // In a real app, you would disable the video track here
+            if (isVideoOff) {
+                localVideo.style.opacity = '0.5';
+            } else {
+                localVideo.style.opacity = '1';
+            }
+        });
+
+        // Dockerfile copy function
+        function copyDockerfile() {
+            const dockerfileContent = `# Use the official Node.js image as base
+FROM node:18-alpine
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy all files
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Use a lightweight web server to serve the static files
+FROM nginx:alpine
+
+# Copy the built files to Nginx
+COPY --from=0 /app/dist /usr/share/nginx/html
+
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]`;
+            
+            navigator.clipboard.writeText(dockerfileContent).then(() => {
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
