@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -593,4 +592,5 @@ CMD ["nginx", "-g", "daemon off;"]`;
                 setTimeout(() => {
                     copyBtn.innerHTML = originalText;
                 }, 2000);
+
 
