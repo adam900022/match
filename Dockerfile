@@ -1,8 +1,3 @@
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickMatch - Instant Video Chat</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
         .gradient-bg {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         }
@@ -589,6 +584,7 @@ CMD ["nginx", "-g", "daemon off;"]`;
                 setTimeout(() => {
                     copyBtn.innerHTML = originalText;
                 }, 2000);
+
 
 
 
